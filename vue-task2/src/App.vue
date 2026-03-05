@@ -5,6 +5,12 @@
 
       <div class="column">
         <h2>Column 1 (max 3 cards)</h2>
+        <NoteCard 
+                    v-for="note in notes" 
+                    :key="note.id"
+                    :note="note"
+                    @update="saveNotes"
+                />
 
       </div>
 
@@ -20,11 +26,49 @@
 
     </div>
 
-    <button class="add-button"> Add card </button>
+    <button @click="addNewNote" class="add-card-btn">
+            + Add new card
+        </button>
+
   </div>
 </template>
 
-<script setup></script>
+<script setup>
+import { ref } from 'vue'
+import NoteCard from './components/NoteCard.vue'
+
+// Test data
+const notes = ref([
+    {
+        id: 1,
+        title: 'Shopping',
+        items: [
+            { text: 'Milk', completed: false },
+            { text: 'Bread', completed: true },
+            { text: 'Eggs', completed: false }
+        ],
+        completedAt: '2024-03-05'
+    }
+])
+
+const addNewNote = () => {
+    notes.value.push({
+        id: Date.now(),
+        title: 'New note',
+        items: [
+            { text: 'Item 1', completed: false },
+            { text: 'Item 2', completed: false },
+            { text: 'Item 3', completed: false }
+        ],
+        completedAt: null
+    })
+}
+
+const saveNotes = () => {
+    console.log('Saved!')
+    // Here we'll save to localStorage later
+}
+</script>
 
 <style scoped>
 .app {
