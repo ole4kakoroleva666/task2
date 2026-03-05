@@ -59,14 +59,44 @@ const notes = ref([
             { text: 'Eggs', completed: false }
         ],
         completedAt: null
+    },
+
+    {
+        id: 2,
+        title: 'Shopping',
+        items: [
+            { text: 'Milk', completed: false },
+            { text: 'Bread', completed: true },
+            { text: 'Eggs', completed: false }
+        ],
+        completedAt: null
     }
 ])
 
 const column2 = ref([
- 
+ {
+        id: 3,
+        title: 'Shopping',
+        items: [
+            { text: 'Milk', completed: false },
+            { text: 'Bread', completed: true },
+            { text: 'Eggs', completed: false }
+        ],
+        completedAt: null
+    },
 ])
 
 const column3 = ref([
+  {
+        id: 4,
+        title: 'Shopping',
+        items: [
+            { text: 'Milk', completed: false },
+            { text: 'Bread', completed: true },
+            { text: 'Eggs', completed: false }
+        ],
+        completedAt: '2026-01-06 17:29'
+    },
   
 ])
 
@@ -87,7 +117,41 @@ const addNewNote = () => {
 
 const updateNote = (updateNote) => {
   console.log('Note updated:', updatedNote)
+  moveNote(updatedNote)
 }
+
+const moveNote = (note) => {
+  const total = note.items.length
+  const done = note.items.filter(item => item.completed).length
+  const percent = Math.round((done / total) * 100)
+
+  let inCol1 = column1.value.findIndex(n => n.id === note.id)
+  let inCol2 = column2.value.findIndex(n => n.id === note.id)
+
+  if (inCol1 !== -1){
+    if (percent === 100) {
+      const [movedNote] =  column1.value.splice(inCol1,1)
+      movedNote.completedAt = new Date().toLocaleString()
+      column3.value.push(movedNote)
+      console.log('Moved to column 3')
+    }
+
+    else if (percent > 50) {
+      const [movedNote] = column1.value.splice(inCol1, 1)
+      column2.value.push(movedNote)
+      console.log('Moved to column 2')
+    }
+  }
+
+    else if (inCol2 !== -1) {
+      if (percent === 100) {
+        const [movedNote] =  column2.value.splice(inCol2,1)
+        movedNote.completedAt = new Date().toLocaleString()
+        column3.value.push(movedNote)
+        console.log('Moved to column 3')
+      }
+    }
+  }
 </script>
 
 <style scoped>
