@@ -3,12 +3,18 @@
     <h1>Мои заметки</h1>
     <div class="columns">
 
-      <div class="column">
+      <div class="column" :class="{'column-blocked': isColumn1Blocked}">
+        <div class="column-header">
         <h2>Column 1 ({{ column1.length }}/ 3)</h2>
+        <div v-if="isColumn1Blocked" class="blocked-overlay">
+          <p>1 column filled. Free up space in 2 columns</p>
+        </div>
+      </div>
           <NoteCard 
             v-for="note in column1" 
             :key="note.id"
             :note="note"
+            :isBlocked="isColumn1Blocked"
             @update="updateNote"
           />
 
@@ -20,6 +26,7 @@
             v-for="note in column2"
             :key="note.id"
             :note="note"
+            :isBlocked="false"
             @update="updateNote"
           />  
       </div>
@@ -30,6 +37,7 @@
             v-for="note in column3" 
             :key="note.id"
             :note="note"
+            :isBlocked="false"
             @update="updateNote"
           />
       </div>
@@ -54,9 +62,9 @@ const column1 = ref([
         id: 1,
         title: 'Shopping',
         items: [
-            { text: 'Milk', completed: false },
-            { text: 'Bread', completed: true },
-            { text: 'Eggs', completed: false }
+            { text: 'Item 1', completed: false },
+            { text: 'Item 2', completed: true },
+            { text: 'Item 3', completed: false }
         ],
         completedAt: null
     },
@@ -65,9 +73,9 @@ const column1 = ref([
         id: 2,
         title: 'Shopping',
         items: [
-            { text: 'Milk', completed: false },
-            { text: 'Bread', completed: true },
-            { text: 'Eggs', completed: false }
+            { text: 'Item 1', completed: false },
+            { text: 'Item 2', completed: true },
+            { text: 'Item 3', completed: false }
         ],
         completedAt: null
     }
@@ -78,15 +86,16 @@ const column2 = ref([
         id: 3,
         title: 'Shopping',
         items: [
-            { text: 'Milk', completed: false },
-            { text: 'Bread', completed: true },
-            { text: 'Eggs', completed: false }
+            { text: 'Item 1', completed: false },
+            { text: 'Item 2', completed: true },
+            { text: 'Item 3', completed: false }
         ],
         completedAt: null
     },
 ])
 
 const column3 = ref([])
+const isColumn1Blocked = ref(false)
 
 const addNewNote = () => {
   if (column1.value.length < 3) {
@@ -100,12 +109,15 @@ const addNewNote = () => {
       ],
       completedAt: null
     })
+    saveToStorage() 
   }  
 }
 
 const updateNote = (updatedNote) => {
   console.log('Note updated:', updatedNote)
   moveNote(updatedNote)
+  checkBlocking()
+  saveToStorage() 
 }
 
 const moveNote = (note) => {
@@ -143,7 +155,60 @@ const moveNote = (note) => {
         console.log('Moved to column 3')
       }
     }
+}  
+    const checkBlocking = () => {
+      const isColumn2Full = column2.value.length >= 5
+  
+    let hasOver50InColumn1 = false
+  
+    for (let note of column1.value) {
+    const total = note.items.length
+    const done = note.items.filter(item => item.completed).length
+    const percent = Math.round((done / total) * 100)
+    
+    if (percent > 50 && percent < 100) {
+      hasOver50InColumn1 = true
+      break
+    }
   }
+if (isColumn2Full && hasOver50InColumn1) {
+    isColumn1Blocked.value = true
+    console.log('Column 1 locked')
+  } else {
+    if (isColumn1Blocked.value === true) {
+      isColumn1Blocked.value = false
+      console.log('Column 1 unlocked')
+    }
+  }
+}
+
+const saveToStorage = () => {
+  const data = {
+    column1: column1.value,
+    column2: column2.value,
+    column3: column3.value
+  }
+  localStorage.setItem('notesApp', JSON.stringify(data))
+  console.log('data is saved')
+}
+
+const loadFromStorage = () => {
+  const savedData = localStorage.getItem('notesApp')
+  if (savedData) {
+    try {
+      const data = JSON.parse(savedData)
+      column1.value = data.column1 || []
+      column2.value = data.column2 || []
+      column3.value = data.column3 || []
+      console.log('Data loaded from storage')
+    } catch (e) {
+      console.error('Error loading data:', e)
+      }
+    } 
+  }
+
+loadFromStorage()
+
 </script>
 
 <style scoped>
@@ -208,13 +273,21 @@ h1 {
   cursor: pointer;
 }
 
-.add-card-btn:hover {
-  background-color: #84425d;
+
+.column-blocked {
+  background-color: #ffe9e9;
+  border: 2px solid;
+  opacity: 0.8;
 }
 
-.warning {
+.blocked-overlay {
+  background-color: #dc3545;
+  color: white;
+  padding: 10px;
+  margin: 10px 0;
+  border-radius: 4px;
   text-align: center;
-  color: #dc3545;
   font-weight: bold;
 }
+
 </style>

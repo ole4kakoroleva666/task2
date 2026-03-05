@@ -6,17 +6,19 @@
         type="text"
         placeholder="Card name"
         class="title-input"
+        :disabled="isBlocked"
+        @input="emit('update', note)"
     >
 
     <div class="progress-box">
         Progress: {{ doneCount }} / {{ totalCount }} ({{ percent }}%)
     </div>
-
     <div v-for="(item, index) in note.items" :key="index" class="item-row">
 
         <input
             type="checkbox"
             v-model="item.completed"
+            :disabled="isBlocked"
             @change="emit('update', note)"
         >
 
@@ -24,14 +26,15 @@
             v-model="item.text"
             placeholder="Item text"
             class="item-input"
+            :disabled="isBlocked"
+            @input="emit('update', note)"
         >
     </div>
 
         <button
             v-if="note.items.length < 5" @click="addItem"
-                    class="add-btn" > + Add item
+                    class="add-btn" :disabled="isBlocked" > + Add item
         </button>
-        
     <div v-if="note.completedAt" class="date">
         Done: {{ note.completedAt }}
     </div>
@@ -43,7 +46,8 @@
 import { computed } from 'vue'
 
 const props = defineProps({
-    note: Object
+    note: Object,
+    isBlocked: Boolean 
 })
 
 const emit = defineEmits(['update'])
@@ -88,6 +92,20 @@ const addItem = () => {
     font-size: 16px;
 }
 
+.title-input:disabled,
+.item-input:disabled,
+.add-btn:disabled {
+    background-color: #f0f0f0;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+input[type="checkbox"]:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+
 .progress-box {
     background: #855669;
     padding: 8px;
@@ -123,6 +141,10 @@ const addItem = () => {
 
 .add-btn:hover {
     background: #60414e;
+}
+
+.add-btn:disabled:hover {
+    background: #855669;
 }
 
 .date {
