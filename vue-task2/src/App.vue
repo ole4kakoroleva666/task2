@@ -4,31 +4,42 @@
     <div class="columns">
 
       <div class="column">
-        <h2>Column 1 (max 3 cards)</h2>
-        <NoteCard 
-                    v-for="note in notes" 
-                    :key="note.id"
-                    :note="note"
-                    @update="saveNotes"
-                />
+        <h2>Column 1 ({{ column1.length }}/ 3)</h2>
+          <NoteCard 
+            v-for="note in column1" 
+            :key="note.id"
+            :note="note"
+            @update="updateNote"
+          />
 
       </div>
 
       <div class="column">
-        <h2>Column 2 (max 5 cards)</h2>
-
+        <h2>Column 2 ({{ column2.length }}/5)</h2>
+          <NoteCard
+            v-for="note in column2"
+            :key="note.id"
+            :note="note"
+            @update="updateNote"
+          />  
       </div>
 
       <div class="column">
-        <h2>Column 3(without restrictions)</h2>
-
+        <h2>Column 3 ({{ column3.length }})</h2>
+          <NoteCard 
+            v-for="note in column3" 
+            :key="note.id"
+            :note="note"
+            @update="updateNote"
+          />
       </div>
 
     </div>
 
-    <button @click="addNewNote" class="add-card-btn">
+    <button v-if="column1.length < 3" @click="addNewNote" class="add-card-btn">
             + Add new card
-        </button>
+    </button>
+    <p v-else class="!!!"> Column 1 is full(max 3 cards)</p>
 
   </div>
 </template>
@@ -37,7 +48,7 @@
 import { ref } from 'vue'
 import NoteCard from './components/NoteCard.vue'
 
-// Test data
+
 const notes = ref([
     {
         id: 1,
@@ -47,30 +58,40 @@ const notes = ref([
             { text: 'Bread', completed: true },
             { text: 'Eggs', completed: false }
         ],
-        completedAt: '2024-03-05'
+        completedAt: null
     }
 ])
 
+const column2 = ref([
+ 
+])
+
+const column3 = ref([
+  
+])
+
 const addNewNote = () => {
-    notes.value.push({
-        id: Date.now(),
-        title: 'New note',
-        items: [
-            { text: 'Item 1', completed: false },
-            { text: 'Item 2', completed: false },
-            { text: 'Item 3', completed: false }
-        ],
-        completedAt: null
+  if (column1.value.length < 3) {
+    column1.value.push({
+      id: Date.now(),
+      title: 'New note',
+      items: [
+        { text: 'Item 1', completed: false },
+        { text: 'Item 2', completed: false },
+        { text: 'Item 3', completed: false }
+      ],
+      completedAt: null
     })
+  }  
 }
 
-const saveNotes = () => {
-    console.log('Saved!')
-    // Here we'll save to localStorage later
+const updateNote = (updateNote) => {
+  console.log('Note updated:', updatedNote)
 }
 </script>
 
 <style scoped>
+
 .app {
   padding: 20px;
   max-width: 1400px;
@@ -119,5 +140,25 @@ h1 {
 
 .add-button:hover {
   background-color: #84425d;
+}.add-card-btn {
+  display: block;
+  margin: 0 auto;
+  padding: 12px 24px;
+  background-color: #6f2a46;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.add-card-btn:hover {
+  background-color: #84425d;
+}
+
+.warning {
+  text-align: center;
+  color: #dc3545;
+  font-weight: bold;
 }
 </style>
