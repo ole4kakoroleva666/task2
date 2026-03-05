@@ -17,6 +17,7 @@
         <input
             type="checkbox"
             v-model="item.completed"
+            @change="emit('update', note)"
         >
 
         <input
@@ -64,7 +65,7 @@ const addItem = () => {
             text: '',
             completed: false
         })
-        emit('update')
+        emit('update', props.note)
     }
 }
 </script>

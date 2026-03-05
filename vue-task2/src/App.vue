@@ -49,7 +49,7 @@ import { ref } from 'vue'
 import NoteCard from './components/NoteCard.vue'
 
 
-const notes = ref([
+const column1 = ref([
     {
         id: 1,
         title: 'Shopping',
@@ -86,19 +86,7 @@ const column2 = ref([
     },
 ])
 
-const column3 = ref([
-  {
-        id: 4,
-        title: 'Shopping',
-        items: [
-            { text: 'Milk', completed: false },
-            { text: 'Bread', completed: true },
-            { text: 'Eggs', completed: false }
-        ],
-        completedAt: '2026-01-06 17:29'
-    },
-  
-])
+const column3 = ref([])
 
 const addNewNote = () => {
   if (column1.value.length < 3) {
@@ -115,7 +103,7 @@ const addNewNote = () => {
   }  
 }
 
-const updateNote = (updateNote) => {
+const updateNote = (updatedNote) => {
   console.log('Note updated:', updatedNote)
   moveNote(updatedNote)
 }
@@ -137,10 +125,14 @@ const moveNote = (note) => {
     }
 
     else if (percent > 50) {
+      if (column2.value.length < 5){
       const [movedNote] = column1.value.splice(inCol1, 1)
       column2.value.push(movedNote)
       console.log('Moved to column 2')
+    }else {
+      console.log('Column 2 is full(max 5 cards)')
     }
+  }
   }
 
     else if (inCol2 !== -1) {
