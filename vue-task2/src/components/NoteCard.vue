@@ -29,14 +29,14 @@
 
         <button
             v-if="note.items.length < 5" @click="addItem"
-                    class="add-btn" >+ Add item
+                    class="add-btn" > + Add item
         </button>
-
+        
     <div v-if="note.completedAt" class="date">
         Done: {{ note.completedAt }}
     </div>
 </div>
-</template>      
+</template>
 
     
 <script setup>
