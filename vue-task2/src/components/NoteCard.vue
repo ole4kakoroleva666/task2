@@ -6,19 +6,22 @@
         type="text"
         placeholder="Card name"
         class="title-input"
-        :disabled="isBlocked"
+        :disabled="isBlocked || globalBlocked"
         @input="emit('update', note)"
     >
 
     <div class="progress-box">
         Progress: {{ doneCount }} / {{ totalCount }} ({{ percent }}%)
     </div>
+
+    <div v-if="note.priority" class="priority-badge">PRIORITY</div>
+
     <div v-for="(item, index) in note.items" :key="index" class="item-row">
 
         <input
             type="checkbox"
             v-model="item.completed"
-            :disabled="isBlocked"
+            :disabled="isBlocked || globalBlocked"
             @change="emit('update', note)"
         >
 
@@ -26,14 +29,14 @@
             v-model="item.text"
             placeholder="Item text"
             class="item-input"
-            :disabled="isBlocked"
+            :disabled="isBlocked || globalBlocked"
             @input="emit('update', note)"
         >
     </div>
 
         <button
             v-if="note.items.length < 5" @click="addItem"
-                    class="add-btn" :disabled="isBlocked" > + Add item
+                    class="add-btn" :disabled="isBlocked || globalBlocked" > + Add item
         </button>
     <div v-if="note.completedAt" class="date">
         Done: {{ note.completedAt }}
@@ -47,8 +50,16 @@ import { computed } from 'vue'
 
 const props = defineProps({
     note: Object,
-    isBlocked: Boolean 
+    isBlocked: Boolean,
+    globalBlocked: Boolean
 })
+
+const togglePriority = () => {
+  if (!props.isBlocked) {
+    props.note.priority = !props.note.priority
+    emit('update', props.note)
+  }
+}
 
 const emit = defineEmits(['update'])
 
@@ -154,5 +165,38 @@ input[type="checkbox"]:disabled {
     font-size: 12px;
     color: #1c1c1b;
     text-align: right;
+}
+
+.priority-badge {
+    color: #baba54;
+}
+
+.priority-task {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.priority-icon {
+  font-size: 24px;
+  transition: transform 0.2s;
+  color: #fef600;
+}
+
+.priority-icon:hover {
+  transform: scale(1.2);
+}
+
+.priority-active {
+  color: gold;
+  text-shadow: 0 0 5px orange;
+}
+
+.priority-text {
+  font-size: 14px;
+  color: #666;
 }
 </style>

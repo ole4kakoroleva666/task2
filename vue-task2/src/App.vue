@@ -2,11 +2,21 @@
   <div class="app">
     <h1>My notes</h1>
 
-      <button v-if="column1.length < 3" @click="addNewNote" class="add-card-btn">
+      <button v-if="column1.length < 3 && !hasActivePriority" @click="addNewNote(false)" class="add-card-btn">
             + Add new card
-    </button>
+      </button>
+
+      <button v-if="column1.length < 3 && !hasActivePriority" @click="addNewNote(true)" class="add-card-btn priority-btn">
+       + Add priority card
+      </button>
+
+    <div v-if="hasActivePriority" class="global-block">
+      PRIORITY TASK ACTIVE
+      <p>The whole app is blocked until you complete the priority task</p>
+    </div>  
+
     <p v-else class="!!!"> Column 1 is full(max 3 cards)</p>
-    
+
     <div class="columns">
 
       <div class="column" :class="{'column-blocked': isColumn1Blocked}">
@@ -20,7 +30,8 @@
             v-for="note in column1" 
             :key="note.id"
             :note="note"
-            :isBlocked="isColumn1Blocked"
+            :isBlocked="isColumn1Blocked || (hasActivePriority && !note.priority)"
+            :globalBlocked="hasActivePriority"
             @update="updateNote"
           />
 
@@ -32,7 +43,8 @@
             v-for="note in column2"
             :key="note.id"
             :note="note"
-            :isBlocked="false"
+            :isBlocked="hasActivePriority" 
+            :globalBlocked="hasActivePriority && !note.priority" 
             @update="updateNote"
           />  
       </div>
@@ -43,7 +55,8 @@
             v-for="note in column3" 
             :key="note.id"
             :note="note"
-            :isBlocked="false"
+            :isBlocked="false" 
+            :globalBlocked="hasActivePriority"   
             @update="updateNote"
           />
       </div>
@@ -62,6 +75,7 @@ const column1 = ref([
     {
         id: 1,
         title: 'Shopping',
+        priority: false,
         items: [
             { text: 'Item 1', completed: false },
             { text: 'Item 2', completed: true },
@@ -73,6 +87,7 @@ const column1 = ref([
     {
         id: 2,
         title: 'Shopping',
+        priority: false,
         items: [
             { text: 'Item 1', completed: false },
             { text: 'Item 2', completed: true },
@@ -86,6 +101,7 @@ const column2 = ref([
  {
         id: 3,
         title: 'Shopping',
+        priority: false,
         items: [
             { text: 'Item 1', completed: false },
             { text: 'Item 2', completed: true },
@@ -97,12 +113,25 @@ const column2 = ref([
 
 const column3 = ref([])
 const isColumn1Blocked = ref(false)
+const hasActivePriority = ref(false)
 
-const addNewNote = () => {
+const addNewNote = (makePriority = false) => {
   if (column1.value.length < 3) {
+    
+    if (makePriority && hasActivePriority.value) {
+      alert('Cannot create another priority card. Complete the current one first.')
+      return
+    }
+
+     if (hasActivePriority.value) {
+    alert('Cannot create new cards while a priority task is active!')
+    return
+  }
+    
     column1.value.push({
       id: Date.now(),
       title: 'New note',
+      priority: makePriority,
       items: [
         { text: 'Item 1', completed: false },
         { text: 'Item 2', completed: false },
@@ -110,14 +139,19 @@ const addNewNote = () => {
       ],
       completedAt: null
     })
-    saveToStorage() 
+    
+    saveToStorage()
+    
+    if (makePriority) {
+      console.log('Priority card created')
+    }
   }  
 }
-
 const updateNote = (updatedNote) => {
   console.log('Note updated:', updatedNote)
   moveNote(updatedNote)
   checkBlocking()
+  checkPriority()
   saveToStorage() 
 }
 
@@ -128,41 +162,72 @@ const moveNote = (note) => {
 
   let inCol1 = column1.value.findIndex(n => n.id === note.id)
   let inCol2 = column2.value.findIndex(n => n.id === note.id)
+  let inCol3 = column3.value.findIndex(n => n.id === note.id)
 
-  if (inCol1 !== -1){
+  if (inCol1 !== -1) {
     if (percent === 100) {
-      const [movedNote] =  column1.value.splice(inCol1,1)
+      const [movedNote] = column1.value.splice(inCol1, 1)
       movedNote.completedAt = new Date().toLocaleString()
       column3.value.push(movedNote)
       console.log('Moved to column 3')
-    }
-
-    else if (percent > 50) {
-      if (column2.value.length < 5){
-      const [movedNote] = column1.value.splice(inCol1, 1)
-      column2.value.push(movedNote)
-      console.log('Moved to column 2')
-    }else {
-      console.log('Column 2 is full(max 5 cards)')
-    }
-  }
-  }
-
-    else if (inCol2 !== -1) {
-      if (percent === 100) {
-        const [movedNote] =  column2.value.splice(inCol2,1)
-        movedNote.completedAt = new Date().toLocaleString()
-        column3.value.push(movedNote)
-        console.log('Moved to column 3')
+    } else if (percent > 50) {
+      if (column2.value.length < 5) {
+        const [movedNote] = column1.value.splice(inCol1, 1)
+        column2.value.push(movedNote)
+        console.log('Moved to column 2')
+      } else {
+        console.log('Column 2 is full (max 5 cards)')
       }
     }
-}  
-    const checkBlocking = () => {
-      const isColumn2Full = column2.value.length >= 5
+  } 
+  else if (inCol2 !== -1) {
+    if (percent === 100) {
+      const [movedNote] = column2.value.splice(inCol2, 1)
+      movedNote.completedAt = new Date().toLocaleString()
+      column3.value.push(movedNote)
+      console.log('Moved to column 3')
+    } else if (percent <= 50) {
+      if (column1.value.length < 3) {
+        const [movedNote] = column2.value.splice(inCol2, 1)
+        movedNote.completedAt = null
+        column1.value.push(movedNote)
+        console.log('Moved back to column 1')
+      } else {
+        console.log('Column 1 is full! Cannot move back')
+      }
+    }
+  }
+  else if (inCol3 !== -1) {
+    if (percent < 100) {
+      
+      
+      note.completedAt = null
+      
+      if (percent > 50) {
+        if (column2.value.length < 5) {
+          const [movedNote] = column3.value.splice(inCol3, 1)
+          column2.value.push(movedNote)
+          console.log('Moved from column 3 to column 2')
+        } else {
+          console.log('Column 2 is full! Cannot move')
+        }
+      } else {
+        if (column1.value.length < 3) {
+          const [movedNote] = column3.value.splice(inCol3, 1)
+          column1.value.push(movedNote)
+          console.log('Moved from column 3 to column 1')
+        } else {
+          console.log('Column 1 is full! Cannot move')
+        }
+      }
+    }
+  }
+}
+const checkBlocking = () => {
+  const isColumn2Full = column2.value.length >= 5
+  let hasOver50InColumn1 = false
   
-
-    let hasOver50InColumn1 = false
-    for (let note of column1.value) {
+  for (let note of column1.value) {
     const total = note.items.length
     const done = note.items.filter(item => item.completed).length
     const percent = Math.round((done / total) * 100)
@@ -171,7 +236,8 @@ const moveNote = (note) => {
       break
     }
   }
-if (isColumn2Full && hasOver50InColumn1) {
+  
+  if (isColumn2Full && hasOver50InColumn1) {
     isColumn1Blocked.value = true
     console.log('Column 1 locked')
   } else {
@@ -182,6 +248,16 @@ if (isColumn2Full && hasOver50InColumn1) {
   }
 }
 
+const checkPriority = () => {
+  const activePriority = [...column1.value, ...column2.value].find(note => 
+    note.priority === true
+  )
+  hasActivePriority.value = !!activePriority
+  
+  if (hasActivePriority.value) {
+    console.log('Active priority card exists')
+  }
+}
 const saveToStorage = () => {
   const data = {
     column1: column1.value,
@@ -203,12 +279,11 @@ const loadFromStorage = () => {
       console.log('Data loaded from storage')
     } catch (e) {
       console.error('Error loading data:', e)
-      }
-    } 
-  }
+    }
+  } 
+}
 
 loadFromStorage()
-
 </script>
 
 <style scoped>
