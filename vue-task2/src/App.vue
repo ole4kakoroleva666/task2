@@ -1,6 +1,12 @@
 <template>
   <div class="app">
-    <h1>Мои заметки</h1>
+    <h1>My notes</h1>
+
+      <button v-if="column1.length < 3" @click="addNewNote" class="add-card-btn">
+            + Add new card
+    </button>
+    <p v-else class="!!!"> Column 1 is full(max 3 cards)</p>
+    
     <div class="columns">
 
       <div class="column" :class="{'column-blocked': isColumn1Blocked}">
@@ -43,11 +49,6 @@
       </div>
 
     </div>
-
-    <button v-if="column1.length < 3" @click="addNewNote" class="add-card-btn">
-            + Add new card
-    </button>
-    <p v-else class="!!!"> Column 1 is full(max 3 cards)</p>
 
   </div>
 </template>
@@ -159,13 +160,12 @@ const moveNote = (note) => {
     const checkBlocking = () => {
       const isColumn2Full = column2.value.length >= 5
   
+
     let hasOver50InColumn1 = false
-  
     for (let note of column1.value) {
     const total = note.items.length
     const done = note.items.filter(item => item.completed).length
     const percent = Math.round((done / total) * 100)
-    
     if (percent > 50 && percent < 100) {
       hasOver50InColumn1 = true
       break
